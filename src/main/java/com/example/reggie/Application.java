@@ -8,13 +8,16 @@ package com.example.reggie;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 
 /**
+ * @ServletComponentScan 注解用于扫描过滤器类
  * @author zhangzhi
  */
 
 @Slf4j
 @SpringBootApplication
+@ServletComponentScan
 public class Application {
 
     public static void main(String[] args) {
