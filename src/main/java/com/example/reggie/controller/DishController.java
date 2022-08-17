@@ -5,6 +5,7 @@ package com.example.reggie.controller;
 // @AUTHOR zhangzhi
 // @DESCRIPTION
 
+import com.aliyuncs.http.HttpMessage;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.reggie.common.R;
@@ -17,10 +18,13 @@ import com.example.reggie.service.DishFlavorService;
 import com.example.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.protocol.HTTP;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -156,5 +160,38 @@ public class DishController {
         }).collect(Collectors.toList());
 
         return R.success(dishDtos);
+    }
+
+    /**
+     * 修改菜品是否起售
+     * @param status 修改状态
+     * @param ids 菜品 id
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    public R<Integer> dishStatus(@PathVariable Integer status,@RequestParam("ids") List<Long> ids) {
+        log.info("菜品状态：{}",status);
+        log.info("ids:{}", ids.toString());
+        for (Long id : ids) {
+            Dish newDish = new Dish();
+            newDish.setId(id);
+            newDish.setStatus(status);
+            dishService.updateById(newDish);
+        }
+        return R.success(HttpServletResponse.SC_OK);
+    }
+
+    /**
+     * 删除菜品
+     * @param ids 菜品 id 的数组
+     * @return
+     */
+    @DeleteMapping
+    public R<Integer> delete(@RequestParam("ids") List<Long> ids){
+        log.info("ids:{}", ids.toString());
+
+        dishService.removeByIds(ids);
+
+        return R.success(HttpServletResponse.SC_OK);
     }
 }

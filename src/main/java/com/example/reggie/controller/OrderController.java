@@ -6,6 +6,7 @@ package com.example.reggie.controller;
 // @DESCRIPTION
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.reggie.common.BaseContext;
 import com.example.reggie.common.R;
 import com.example.reggie.entity.Orders;
@@ -41,33 +42,25 @@ public class OrderController {
 
     /**
      * TODO
-     * 查询所有订单
+     * 用户个人订单查询
      * @return
      */
-    @GetMapping("/list")
-    public R<List<Orders>> list(Orders orders){
-        orders.setUserId(BaseContext.getCurrentId());
-        log.info("orders:{}",orders);
+    @GetMapping("/userPage")
+    public R<Page<Orders>> userPage(int page,int pageSize){
+        Page<Orders> pageInfo = new Page<>(page,pageSize);
 
-        LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(null != orders.getUserId(), Orders::getUserId, orders.getUserId());
-        queryWrapper.orderByDesc(Orders::getCheckoutTime);
-
-        List<Orders> list = orderService.list(queryWrapper);
-        log.info(list.toString());
-
-        return R.success(orderService.list(queryWrapper));
+        return R.success(orderService.page(pageInfo));
     }
 
     /**
      * TODO
-     * 分页查询
+     * 后台系统分页查询
      * @param page
      * @param pageSize
      * @return
      */
-    @GetMapping("/userPage")
-    public R<List<Orders>> page(int page,int pageSize){
+    @GetMapping("/page")
+    public R<Page<Orders>> page(int page, int pageSize){
         LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq( Orders::getUserId, BaseContext.getCurrentId());
         queryWrapper.orderByDesc(Orders::getCheckoutTime);
@@ -75,7 +68,7 @@ public class OrderController {
         List<Orders> list = orderService.list(queryWrapper);
         log.info(list.toString());
 
-        return R.success(orderService.list(queryWrapper));
+        return R.success(orderService.page(new Page<>()));
     }
 
     /**

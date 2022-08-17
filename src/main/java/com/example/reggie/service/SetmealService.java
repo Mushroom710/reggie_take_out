@@ -23,4 +23,6 @@ public interface SetmealService extends IService<Setmeal> {
      * @param ids
      */
     public void removeWithDish(List<Long> ids);
+
+    public void updateWithDish(SetmealDto setmealDto);
 }

@@ -11,6 +11,7 @@ import com.example.reggie.common.R;
 import com.example.reggie.dto.SetmealDto;
 import com.example.reggie.entity.Category;
 import com.example.reggie.entity.Setmeal;
+import com.example.reggie.entity.SetmealDish;
 import com.example.reggie.service.CategoryService;
 import com.example.reggie.service.SetmealDishService;
 import com.example.reggie.service.SetmealService;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,25 @@ public class SetmealController {
         setmealService.saveWithDish(setmealDto);
 
         return R.success("新增套餐成功");
+    }
+
+    @GetMapping("/{id}")
+    public R<SetmealDto> getById(@PathVariable Long id){
+        log.info("id={}",id);
+
+        Setmeal setmeal = new Setmeal();
+        SetmealDto setmealDto = new SetmealDto();
+
+        setmeal = setmealService.getById(id);
+
+        BeanUtils.copyProperties(setmeal,setmealDto);
+
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId,id);
+        setmealDto.setSetmealDishes(setmealDishService.list(queryWrapper));
+        log.info(setmealDto.toString());
+
+        return R.success(setmealDto);
     }
 
     /**
@@ -131,5 +152,39 @@ public class SetmealController {
         queryWrapper.orderByDesc(Setmeal::getUpdateTime);
 
         return R.success(setmealService.list(queryWrapper));
+    }
+
+    /**
+     * 修改套餐是否停售
+     * @param status
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    public R<Integer> updateSetmealStatus(@PathVariable Integer status,@RequestParam("ids") List<Long> ids){
+        log.info("status:{}",status);
+        log.info("ids:{}",ids.toString());
+
+        for(Long id : ids){
+            Setmeal newSetmeal = new Setmeal();
+            newSetmeal.setStatus(status);
+            newSetmeal.setId(id);
+            setmealService.updateById(newSetmeal);
+        }
+        
+        return R.success(HttpServletResponse.SC_OK);
+    }
+
+    /**
+     * 更新套餐
+     * @param setmealDto
+     * @return
+     */
+    @PutMapping
+    public R<Integer> updateSetmeal(@RequestBody SetmealDto setmealDto){
+        log.info("setmeal:{}",setmealDto.toString());
+        setmealService.updateWithDish(setmealDto);
+
+        return R.success(HttpServletResponse.SC_OK);
     }
 }

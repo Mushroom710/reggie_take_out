@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,9 @@ import java.util.stream.Collectors;
 public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> implements SetmealService {
     @Autowired
     private SetmealDishService setmealDishService;
+
+    @Autowired
+    private SetmealService setmealService;
 
     /**
      * 新增套餐，同时需要保存套餐和菜品的关联关系
@@ -73,5 +77,31 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         lambdaQueryWrapper.in(SetmealDish::getSetmealId,ids);
         //删除关系表中的数据----setmeal_dish
         setmealDishService.remove(lambdaQueryWrapper);
+    }
+
+    /**
+     * 更新套餐
+     * 先把套餐改为停售
+     * 然后调用删除套餐
+     * 最后调用新增套餐
+     * 理由：套餐更新涉及的表较多，不好直接进行更新
+     * 而且数据量也不大，基本设置一次后，就不会改了
+     * @param setmealDto
+     */
+    @Override
+    @Transactional
+    public void updateWithDish(SetmealDto setmealDto) {
+        // 修改为停售
+        Setmeal setmeal = new Setmeal();
+        setmeal.setId(setmealDto.getId());
+        setmeal.setStatus(0);
+        setmealService.updateById(setmeal);
+
+        List<Long> ids = new ArrayList<Long>();
+        ids.add(setmealDto.getId());
+        removeWithDish(ids);
+
+        setmealDto.setId(null);
+        saveWithDish(setmealDto);
     }
 }
